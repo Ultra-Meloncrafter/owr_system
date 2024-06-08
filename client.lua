@@ -8,7 +8,6 @@ end)
 -- Fahrzeug Liste
 local OWRVeh = {"openwheel1","openwheel2","formula","formula2"}
 
-
 local exitVehicle = true
 local plateText = "" 
 -- DRS Locales
@@ -40,6 +39,7 @@ local inDeleterPlace = false
 local timerInSeconds = 0
 local timerInMinutes = 0
 local lapTimer = ""
+local lapJustFinished = false
 
 --Slow Down to Vehicle Speed 
 function SlowDownToLimitSpeed(veh, wantedSpeed)
@@ -100,7 +100,7 @@ local FinishLane = BoxZone:Create(vector3(3705.7615, -6522.9370, 2191.1753), 1.0
     name="FinishLane",
     heading =  134.60,
     useZ = true,
-    debugPoly = true,
+    debugPoly = false,
 })
 
 -- Verschiedene Checks
@@ -207,7 +207,7 @@ function OpenPitStopMenu()
 	}, function(data, menu)
 		if data.current.value == 'fuel_vehicle' then
             local time = math.random(1600, 3000)
-            local playerPed = GetPlayerPed(-1)
+            local playerPed = PlayerPedId()
 			local playerVeh = GetVehiclePedIsIn(playerPed, false)
             local timeInSeconds = time/1000
             local actuallTime = math.floor(timeInSeconds * 100 + 0.5) / 100 
@@ -220,7 +220,7 @@ function OpenPitStopMenu()
             ESX.UI.Menu.CloseAll()
 		elseif data.current.value == 'change_tires' then
             local time = math.random(1800, 3500)
-            local playerPed = GetPlayerPed(-1)
+            local playerPed = PlayerPedId()
 			local playerVeh = GetVehiclePedIsIn(playerPed, false)
             local timeInSeconds = time/1000
             local actuallTime = math.floor(timeInSeconds * 100 + 0.5) / 100 
@@ -235,7 +235,7 @@ function OpenPitStopMenu()
             ESX.UI.Menu.CloseAll()
 		elseif data.current.value == 'everything' then
             local time = math.random(1980, 4980)
-            local playerPed = GetPlayerPed(-1)
+            local playerPed = PlayerPedId()
 			local playerVeh = GetVehiclePedIsIn(playerPed, false)
             local timeInSeconds = time/1000
             local actuallTime = math.floor(timeInSeconds * 100 + 0.5) / 100 
@@ -260,7 +260,7 @@ end
 Citizen.CreateThread(function()
     while true do
         Citizen.Wait(0)
-        local playerPed = GetPlayerPed(-1)
+        local playerPed = PlayerPedId()
         if IsPedInAnyVehicle(playerPed, false) then
 			local playerVeh = GetVehiclePedIsIn(playerPed, false)
             local model = GetEntityModel(playerVeh)
@@ -291,40 +291,11 @@ Citizen.CreateThread(function()
     end
 end)
 
--- FinishLane Funktion
-Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(0)
-        local playerPed = GetPlayerPed(-1)
-        if IsPedInAnyVehicle(playerPed, false) then
-			local playerVeh = GetVehiclePedIsIn(playerPed, false)
-            local model = GetEntityModel(playerVeh)
-            for i = 1, #OWRVeh do
-                if GetHashKey(OWRVeh[i]) == model then
-                    if exports["ultra_utility"]:ifFinishLaneIsCrossed() then 
-                        lapTimer2 = tonumber(lapTimer) 
-                        if lapTimer2 > 0.3 then
-                            plateText = GetVehicleNumberPlateText(playerVeh)
-                            TriggerServerEvent('owr_systems:addTime', plateText, lapTimer)
-                            ESX.ShowNotification("Letzte Runden Zeit: " .. tostring(lapTimer))
-                            timerInSeconds = 0
-                            timerInMinutes = 0
-                            lapTimer = ""
-                        else
-                            ESX.ShowNotification("TEST")
-                        end
-                    end
-                end
-            end
-        end
-    end
-end)
-
 -- Boxenbegrenzer
 Citizen.CreateThread(function()
     while true do
         Citizen.Wait(0)
-        local playerPed = GetPlayerPed(-1)
+        local playerPed = PlayerPedId()
         if IsPedInAnyVehicle(playerPed, false) then
 			local playerVeh = GetVehiclePedIsIn(playerPed, false)
             local model = GetEntityModel(playerVeh)
@@ -357,7 +328,7 @@ end)
 Citizen.CreateThread(function()
     while true do
         Citizen.Wait(0)
-        local playerPed = GetPlayerPed(-1)
+        local playerPed = PlayerPedId()
         if IsPedInAnyVehicle(playerPed, false) then
 			local playerVeh = GetVehiclePedIsIn(playerPed, false)
             local model = GetEntityModel(playerVeh)
@@ -387,7 +358,7 @@ end)
 Citizen.CreateThread(function ()
     while true do
         Citizen.Wait(0)
-        local playerPed = GetPlayerPed(-1)
+        local playerPed = PlayerPedId()
         if IsPedInAnyVehicle(playerPed, false) then
 			local playerVeh = GetVehiclePedIsIn(playerPed, false)
             local model = GetEntityModel(playerVeh)
@@ -517,7 +488,7 @@ Citizen.CreateThread(function()
                         end
                     end
                     if GetDistanceBetweenCoords(coords, 3482.8706, -6721.2778, 2187.8362, true) < 2.0 or GetDistanceBetweenCoords(coords, 3493.6082, -6710.8833, 2187.9531, true) < 2.0 or GetDistanceBetweenCoords(coords, 3513.9102, -6689.7056, 2188.2068, true) < 2.0 or GetDistanceBetweenCoords(coords, 3550.4514, -6652.8560, 2188.7454, true) < 2.0 or GetDistanceBetweenCoords(coords, 3565.5452, -6637.2407, 2188.9316, true) < 2.0 or GetDistanceBetweenCoords(coords, 3591.0752, -6611.1997, 2189.1545, true) < 2.0 or GetDistanceBetweenCoords(coords, 3617.6296, -6584.3223, 2189.4675, true) < 2.0 or GetDistanceBetweenCoords(coords, 3627.5750, -6575.1270, 2189.5598, true) < 2.0 then
-                        ESX.ShowHelpNotification('Drück ~INPUT_CONTEXT~ um einen Boxenstopp durchzuführen!')
+                        ESX.ShowHelpNotification('Drücke ~INPUT_CONTEXT~ um einen Boxenstopp durchzuführen!')
                         inPitPlace = true
                     else
                         ESX.UI.Menu.CloseAll()
@@ -538,6 +509,7 @@ CreateThread(function()
     local timerInSeconds = 0
     local timerInMinutes = 0
     local playerPed, playerVeh, model
+    local resetControl = 38
     while true do
         Wait(0)
         playerPed = PlayerPedId()
@@ -546,6 +518,18 @@ CreateThread(function()
             model = GetEntityModel(playerVeh)
             for i = 1, #OWRVeh do
                 if GetHashKey(OWRVeh[i]) == model and not exitVehicle then
+                    if exports["ultra_utility"]:ifFinishLaneIsCrossed() or exports["ultra_utility"]:ifPitLeft() and not lapJustFinished then
+                        lapJustFinished = true
+                        plateText = GetVehicleNumberPlateText(playerVeh)
+                        TriggerServerEvent('owr_systems:addTime', plateText, lapTimer)
+                        ESX.ShowNotification("Letzte Runden Zeit: " .. tostring(lapTimer))
+                        startTime = GetGameTimer()
+                        timerInSeconds = 0
+                        timerInMinutes = 0
+                        elapsedTime = 0
+                        Citizen.Wait(1000)
+                        lapJustFinished = false
+                    end
                     local elapsedTime = GetGameTimer() - startTime
                     timerInSeconds = math.floor(elapsedTime / 1000 % 60)
                     timerInMinutes = math.floor(elapsedTime / 1000 / 60)
@@ -556,6 +540,7 @@ CreateThread(function()
             startTime = GetGameTimer()
             timerInSeconds = 0
             timerInMinutes = 0
+            elapsedTime = 0
         end
     end
 end)
@@ -563,7 +548,7 @@ end)
 Citizen.CreateThread(function()
 	while true do
 		Wait(0)
-        local playerPed = GetPlayerPed(-1)
+        local playerPed = PlayerPedId()
         if IsPedInAnyVehicle(playerPed, false) then
             local playerVeh = GetVehiclePedIsIn(playerPed, false)
             local model = GetEntityModel(playerVeh)
@@ -589,7 +574,7 @@ end)
 Citizen.CreateThread(function()
     while true do
         Citizen.Wait(0)
-        local playerPed = GetPlayerPed(-1)
+        local playerPed = PlayerPedId()
         if IsPedInAnyVehicle(playerPed, false) then
 			local playerVeh = GetVehiclePedIsIn(playerPed, false)
             local model = GetEntityModel(playerVeh)
@@ -614,7 +599,7 @@ end)
 Citizen.CreateThread(function()
     while true do
         Citizen.Wait(0)
-        local playerPed = GetPlayerPed(-1)
+        local playerPed = PlayerPedId()
         if IsPedInAnyVehicle(playerPed, false) then
 			local playerVeh = GetVehiclePedIsIn(playerPed, false)
             local model = GetEntityModel(playerVeh)
@@ -642,7 +627,6 @@ Citizen.CreateThread(function()
             ESX.ShowHelpNotification('Drück ~INPUT_CONTEXT~ um ein Wagen auszuparken!')
             inSpawnerPlace = true
         else
-            ESX.UI.Menu.CloseAll()
             inSpawnerPlace = false
         end
         if IsControlJustReleased(0, 51) and inSpawnerPlace then
@@ -676,8 +660,9 @@ function OpenVehicleSpawnerMenu()
                 CurrentVehicle = CreateVehicle(ModelHash, 3651.6365, -6549.2417, 2190.7163, 140.2945, true, true)
                 print(plateText)
                 SetVehicleNumberPlateText(CurrentVehicle, plateText)
-                TaskWarpPedIntoVehicle(GetPlayerPed(-1), CurrentVehicle, -1)
+                TaskWarpPedIntoVehicle(PlayerPedId(), CurrentVehicle, -1)
             end)
+            menu.close()
 		end
 
 	end, function(data, menu)
@@ -697,10 +682,9 @@ Citizen.CreateThread(function()
         if ESX.PlayerData.job and ESX.PlayerData.job.name == 'public_transport' and IsPedInAnyVehicle(playerPed, false) then
             DrawMarker(1, 3660.1135, -6540.6270, 2189.8477, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 5.0, 1.0, 0, 255, 0, 100, false, true, 2, true, nil, nil, false)
         if GetDistanceBetweenCoords(coords, 3660.1135, -6540.6270, 2189.8477, true) < 1.5  then
-            ESX.ShowHelpNotification('Drück ~INPUT_CONTEXT~ um den Wagen einzuparken!')
+            ESX.ShowHelpNotification('Drücke ~INPUT_CONTEXT~ um den Wagen einzuparken!')
             inDeleterPlace = true
         else
-            ESX.UI.Menu.CloseAll()
             inDeleterPlace = false
         end
         if IsControlJustReleased(0, 51) and inDeleterPlace and GetHashKey(OWRVeh[i]) == model then
@@ -714,7 +698,7 @@ Citizen.CreateThread(function()
 end)
 
 function ReturnVehicle()
-	CurrentVehicle = GetVehiclePedIsIn(GetPlayerPed(-1), false)
+	CurrentVehicle = GetVehiclePedIsIn(PlayerPedId(), false)
 	SetVehicleAsNoLongerNeeded(CurrentVehicle)
 	DeleteEntity(CurrentVehicle)
 	ESX.ShowNotification("Fahrzeug eingeparkt")
@@ -727,14 +711,10 @@ function ReturnVehicle()
     TriggerServerEvent('owr_systems:removePlate', plateText)
 end
 
-RegisterCommand("owr-debug", function()
-    local playerPed = GetPlayerPed(-1)
-    local playerVeh = GetVehiclePedIsIn(playerPed, false)
-    print(GetVehicleNumberPlateText(playerVeh))
-end)
-
---RegisterCommand("owr-debug2", function()
---    local playerPed = GetPlayerPed(-1)
---    local playerVeh = GetVehiclePedIsIn(playerPed, false)
---    FreezeEntityPosition(playerVeh, false)  
---end)
+--[[RegisterCommand("owr-debug", function()
+    timerInSeconds = 0
+    timerInMinutes = 0
+    lapTimer = ""
+    elapsedTime = 0 
+    startTime = GetGameTimer()
+end)]]--
