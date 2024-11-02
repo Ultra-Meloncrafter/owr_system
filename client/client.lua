@@ -220,68 +220,105 @@ AddEventHandler('esx:enteredVehicle', function(vehicle, plate, seat, displayName
     local playerPed = PlayerPedId() 
     local playerVeh = GetVehiclePedIsIn(playerPed, false)
     local model = GetEntityModel(playerVeh)
-    if GetHashKey(OWRVeh[i]) == model then inVeh = true end
-        CreateThread(function()
-            while inVeh do
-                Wait(0)
-                if not PitEntered and not DRSEntered and not safetyMode then
-                    exitVehicle = false
-                    local speedkm   = 250
-                    local speed   = speedkm/3.6
+
+    if GetHashKey(OWRVeh[i]) == model then
+        inVeh = true
+    end
+
+    CreateThread(function()
+        while inVeh do
+            Wait(0)
+            local actions = {}
+
+            if not PitEntered and not DRSEntered and not safetyMode then
+                actions.default = function()
+                    local speed = 250 / 3.6
                     SetVehicleMaxSpeed(playerVeh, speed)
-                elseif exports["ultra_owr_systems"]:ifDRSEntered() then
+                end
+            end
+
+            if exports["ultra_owr_systems"]:ifDRSEntered() then
+                actions.drs_entered = function()
                     ShowNotification("DRS ~g~aktiviert")
                     DRSEntered = true
-                    local speedkm = 300
-                    local speed = speedkm / 3.6
+                    local speed = 300 / 3.6
                     SetVehicleMaxSpeed(playerVeh, speed)
                     SetVehicleEnginePowerMultiplier(playerVeh, 50.0)
-                elseif exports["ultra_owr_systems"]:ifDRSLeft() and DRSEntered then
-                    DRSEntered = false
+                end
+            end
+
+            if exports["ultra_owr_systems"]:ifDRSLeft() and DRSEntered then
+                actions.drs_left = function()
                     ShowNotification("DRS ~r~deaktiviert")
-                    local speedkm = 250
-                    local speed = speedkm / 3.6
+                    local speed = 250 / 3.6
                     SlowDownToLimitSpeed(playerVeh, speed)
                     SetVehicleMaxSpeed(playerVeh, speed)
                     SetVehicleEnginePowerMultiplier(playerVeh, 1.0)
-                elseif exports["ultra_owr_systems"]:ifPitEntered() and not PitEntered and pitRequested then  
+                    DRSEntered = false
+                end
+            end
+
+            if exports["ultra_owr_systems"]:ifPitEntered() and not PitEntered and pitRequested then
+                actions.pit_entered = function()
                     ShowNotification("Boxengassen Begrenzer ~g~aktiviert")
                     PitEntered = true
-                    local speedkm   = 80
-                    local speed   = speedkm/3.6
+                    local speed = 80 / 3.6
                     SlowDownToLimitSpeed(playerVeh, speed)
                     SetVehicleMaxSpeed(playerVeh, speed)
-                elseif exports["ultra_owr_systems"]:ifPitLeft() and PitEntered then
+                end
+            end
+
+            if exports["ultra_owr_systems"]:ifPitLeft() and PitEntered then
+                actions.pit_left = function()
                     ShowNotification("Boxengassen Begrenzer ~r~deaktiviert")
                     inPitPlace = false
                     PitEntered = false
                     pitRequested = false
-                    local speedkm   = 250
-                    local speed   = speedkm/3.6
+                    local speed = 250 / 3.6
                     SetVehicleMaxSpeed(playerVeh, speed)
                     RemovePitMarkers()
-                elseif IsControlJustReleased(0, 29) and not safetyMode then
-                    ShowNotification("Safetycar Begrenzer ~g~aktiviert")
-                    safetyMode = true
-                    local speedkm   = 150
-                    local speed   = speedkm /3.6
-                    SetVehicleMaxSpeed(playerVeh, speed)
-                    SlowDownToLimitSpeed(playerVeh, speed)
-                elseif IsControlJustReleased(0, 29) and safetyMode then
-                    ShowNotification("Safetycar Begrenzer ~r~deaktiviert")
-                    local speedkm   = 250
-                    local speed   = speedkm/3.6
-                    SetVehicleMaxSpeed(playerVeh, speed)
-                    safetyMode = false
-                elseif IsControlJustReleased(0, 44) and not pitRequested then
-                    pitRequested = true
-                    ESX.ShowNotification("Du hast einen Boxenstopp angefragt")
-                elseif IsControlJustReleased(0, 44) and pitRequested then
-                    ESX.ShowNotification("⚠ Du hast noch einen offenen Boxenstopp")
                 end
             end
-        end)
+
+            if IsControlJustReleased(0, 29) then
+                if not safetyMode then
+                    actions.safety_mode_on = function()
+                        ShowNotification("Safetycar Begrenzer ~g~aktiviert")
+                        safetyMode = true
+                        local speed = 150 / 3.6
+                        SetVehicleMaxSpeed(playerVeh, speed)
+                        SlowDownToLimitSpeed(playerVeh, speed)
+                    end
+                else
+                    actions.safety_mode_off = function()
+                        ShowNotification("Safetycar Begrenzer ~r~deaktiviert")
+                        local speed = 250 / 3.6
+                        SetVehicleMaxSpeed(playerVeh, speed)
+                        safetyMode = false
+                    end
+                end
+            end
+
+            if IsControlJustReleased(0, 44) then
+                if not pitRequested then
+                    actions.pit_request = function()
+                        pitRequested = true
+                        ESX.ShowNotification("Du hast einen Boxenstopp angefragt")
+                    end
+                else
+                    actions.pit_request_active = function()
+                        ESX.ShowNotification("⚠ Du hast noch einen offenen Boxenstopp")
+                    end
+                end
+            end
+
+            for _, action in pairs(actions) do
+                action()
+            end
+        end
     end)
+end)
+
 
 --Pit Marker entfernen
 function RemovePitMarkers()
