@@ -8,7 +8,7 @@ local fifthPlate = false
 local sixthPlate = false
 local seventhPlate = false
 local eightPlate = false
-local carCount = "0"
+local carCount = 0
 
 local OldPlate = ""
 
@@ -50,13 +50,13 @@ function timeToSeconds(timeStr)
     return tonumber(minutes) * 60 + tonumber(seconds)
 end
 
-ESX.RegisterServerCallback('owr_systems:carCount', function(src, cb, Count)
+ESX.RegisterServerCallback('owr_systems:carCount', function(src, cb)
     cb(carCount)
-    if tonumber(carCount) < 8 then
-        carCount = tonumber(carCount) + 1
-        carCount = tostring(carCount)
+    if carCount < 8 then
+        carCount = carCount + 1
     end
 end)
+
 
 
 
