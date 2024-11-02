@@ -213,8 +213,8 @@ function OpenPitStopMenu()
 end
 
 -- Pit Stop Menu Ende
-
 local inVeh = false
+local startTime = 0 -- Initialize startTime
 
 AddEventHandler('esx:enteredVehicle', function(vehicle, plate, seat, displayName, netId)
     local playerPed = PlayerPedId() 
@@ -318,6 +318,7 @@ AddEventHandler('esx:enteredVehicle', function(vehicle, plate, seat, displayName
         end
     end)
 end)
+
 
 
 --Pit Marker entfernen
