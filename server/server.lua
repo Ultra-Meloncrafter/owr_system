@@ -62,66 +62,32 @@ end)
 
 RegisterServerEvent('owr_systems:removePlate')
 AddEventHandler('owr_systems:removePlate', function(plateText)
-    if string.match(plateText, "OWR 1") then
-        firstPlate = false
-        print("Plate match 1")
-    elseif string.match(plateText, "OWR 2") then
-        secondPlate = false
-        print("Plate match 2")
-    elseif string.match(plateText, "OWR 3") then
-        thirdPlate = false
-        print("Plate match 3")
-    elseif string.match(plateText, "OWR 4") then
-        fourthPlate = false
-        print("Plate match 4")
-    elseif string.match(plateText, "OWR 5") then
-        fifthPlate = false
-        print("Plate match 5")
-    elseif string.match(plateText, "OWR 6") then
-        sixthPlate = false
-        print("Plate match 6")
-    elseif string.match(plateText, "OWR 7") then
-        seventhPlate = false
-        print("Plate match 7")
-    elseif string.match(plateText, "OWR 8") then
-        eightPlate = false
-        print("Plate match 8")
+    local plates = {
+        "OWR 1", "OWR 2", "OWR 3", "OWR 4",
+        "OWR 5", "OWR 6", "OWR 7", "OWR 8"
+    }
+    for i, plate in ipairs(plates) do
+        if string.match(plateText, plate) then
+            _G["plate" .. i] = false
+            break
+        end
     end
     carCount = tonumber(carCount) - 1 
 end)
 
-ESX.RegisterServerCallback('owr_systems:checkPlate', function (src, cb, CurrentPlate)
-    if not firstPlate then
-        firstPlate = true
-        CurrentPlate = "OWR 1"
-        cb(CurrentPlate)
-    elseif not secondPlate then
-        secondPlate = true
-        CurrentPlate = "OWR 2"
-        cb(CurrentPlate)
-    elseif not thirdPlate then
-        thirdPlate = true
-        CurrentPlate = "OWR 3"
-        cb(CurrentPlate)
-    elseif not fourthPlate then
-        fourthPlate = true
-        CurrentPlate = "OWR 4"
-        cb(CurrentPlate)
-    elseif not fifthPlate then
-        fifthPlate = true
-        CurrentPlate = "OWR 5"
-        cb(CurrentPlate)
-    elseif not sixthPlate then
-        sixthPlate = true
-        CurrentPlate = "OWR 6"
-        cb(CurrentPlate)
-    elseif not seventhPlate then
-        seventhPlate = true
-        CurrentPlate = "OWR 7"
-        cb(CurrentPlate)
-    elseif not eightPlate then
-        eightPlate = false
-        CurrentPlate = "OWR 8"
-        cb(CurrentPlate)
-    end    
+
+ESX.RegisterServerCallback('owr_systems:checkPlate', function(src, cb, CurrentPlate)
+    local plates = {
+        firstPlate, secondPlate, thirdPlate, fourthPlate,
+        fifthPlate, sixthPlate, seventhPlate, eightPlate
+    }
+
+    for i, plate in ipairs(plates) do
+        if not plate then
+            _G["plate" .. i] = true
+            CurrentPlate = "OWR " .. i
+            cb(CurrentPlate)
+            return
+        end
+    end
 end)
