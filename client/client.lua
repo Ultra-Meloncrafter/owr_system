@@ -438,37 +438,42 @@ CreateThread(function()
 	end
 end)
 
---LapTimer anfang
 CreateThread(function()
-    local lapTimer = "0.00"
+    local startTime = GetGameTimer()  -- Start the timer at the beginning
+    local timerInSeconds = 0
+    local timerInMinutes = 0
     local playerPed, playerVeh, model
-    local elapsedTime = 0
-    local lapJustFinished = false
-
+    local resetControl = 38
     while true do
-        Wait(1000)
+        Wait(0)
         playerPed = PlayerPedId()
         if IsPedInAnyVehicle(playerPed, false) then
             playerVeh = GetVehiclePedIsIn(playerPed, false)
             model = GetEntityModel(playerVeh)
             for i = 1, #OWRVeh do
                 if GetHashKey(OWRVeh[i]) == model and not exitVehicle then
-                    if exports["ultra_owr_systems"]:ifFinishLaneIsCrossed() or (exports["ultra_owr_systems"]:ifPitLeft() and not lapJustFinished) then
+                    if exports["ultra_owr_systems"]:ifFinishLaneIsCrossed() or exports["ultra_owr_systems"]:ifPitLeft() and not lapJustFinished then
                         lapJustFinished = true
-                        local plateText = GetVehicleNumberPlateText(playerVeh)
+                        plateText = GetVehicleNumberPlateText(playerVeh)
                         TriggerServerEvent('owr_systems:addTime', plateText, lapTimer)
                         ESX.ShowNotification("Letzte Runden Zeit: " .. tostring(lapTimer))
+                        startTime = GetGameTimer()
+                        timerInSeconds = 0
+                        timerInMinutes = 0
                         elapsedTime = 0
-                        Wait(1000)
+                        Citizen.Wait(1000)
                         lapJustFinished = false
                     end
-                    elapsedTime = elapsedTime + 1
-                    local timerInSeconds = elapsedTime % 60
-                    local timerInMinutes = math.floor(elapsedTime / 60)
+                    local elapsedTime = GetGameTimer() - startTime
+                    timerInSeconds = math.floor(elapsedTime / 1000 % 60)
+                    timerInMinutes = math.floor(elapsedTime / 1000 / 60)
                     lapTimer = string.format("%d.%02d", timerInMinutes, timerInSeconds)
                 end
             end
         else
+            startTime = GetGameTimer()
+            timerInSeconds = 0
+            timerInMinutes = 0
             elapsedTime = 0
         end
     end
@@ -600,27 +605,35 @@ function WaitModelLoad(name)
 end
 
 CreateThread(function()
-	while true do
-		Wait(0)
-		local playerPed = PlayerPedId()
-		local coords = GetEntityCoords(playerPed)
+    while true do
+        Wait(0)
+        local playerPed = PlayerPedId()
+        local coords = GetEntityCoords(playerPed)
+        local cord = vector3(3660.1135, -6540.6270, 2189.8477)
+        local playerVeh = GetVehiclePedIsIn(playerPed, false)
         local model = GetEntityModel(playerVeh)
+
         if ESX.PlayerData.job and ESX.PlayerData.job.name == 'public_transport' and IsPedInAnyVehicle(playerPed, false) then
-            DrawMarker(1, 3660.1135, -6540.6270, 2189.8477, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 5.0, 1.0, 0, 255, 0, 100, false, true, 2, true, nil, nil, false)
-        if GetDistanceBetweenCoords(coords, 3660.1135, -6540.6270, 2189.8477, true) < 1.5  then
-            ESX.ShowHelpNotification('Drücke ~INPUT_CONTEXT~ um den Wagen einzuparken!')
-            inDeleterPlace = true
-        else
-            inDeleterPlace = false
-        end
-        if IsControlJustReleased(0, 51) and inDeleterPlace and GetHashKey(OWRVeh[i]) == model then
-            ReturnVehicle()
-        elseif IsControlJustReleased(0, 51) and inDeleterPlace and not GetHashKey(OWRVeh[i]) == model then
-            ESX.ShowNotification('Du kannst das Fahrzeug hier nicht einparken!')
+            DrawMarker(1, cord.x, cord.y, cord.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.0, 5.0, 1.0, 0, 255, 0, 100, false, true, 2, true, nil, nil, false)
+
+            if #(coords - cord) < 1.5 then
+                ESX.ShowHelpNotification('Drücke ~INPUT_CONTEXT~ um den Wagen einzuparken!')
+                inDeleterPlace = true
+            else
+                inDeleterPlace = false
+            end
+
+            if IsControlJustReleased(0, 51) and inDeleterPlace then
+                if GetHashKey(OWRVeh[i]) == model then
+                    ReturnVehicle()
+                else
+                    ESX.ShowNotification('Du kannst das Fahrzeug hier nicht einparken!')
+                end
+            end
         end
     end
-	end
 end)
+
 
 function ReturnVehicle()
 	CurrentVehicle = GetVehiclePedIsIn(PlayerPedId(), false)
