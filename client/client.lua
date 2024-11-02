@@ -1,11 +1,4 @@
-local success, result = pcall(function()
-    return exports["es_extended"]:getSharedObject()
-end)
-if success then 
-    ESX = result
-else
-  TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
-end
+ESX = exports['es_extended']:getSharedObject()
 
 -- Fahrzeug Liste
 local OWRVeh = {"openwheel1","openwheel2","formula","formula2"}
