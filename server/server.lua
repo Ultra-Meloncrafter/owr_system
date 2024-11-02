@@ -46,9 +46,15 @@ AddEventHandler('owr_systems:addTime',function(vehPlate, lapTimerClient)
 end)
 
 function timeToSeconds(timeStr)
-    local minutes, seconds = string.match(timeStr, "(%d+).(%d+)")
-    return tonumber(minutes) * 60 + tonumber(seconds)
+    local minutes, seconds = string.match(timeStr, "(%d+)%.(%d+)")
+    if minutes and seconds then
+        return tonumber(minutes) * 60 + tonumber(seconds)
+    else
+        print(timeStr)
+        return 0
+    end
 end
+
 
 ESX.RegisterServerCallback('owr_systems:carCount', function(src, cb)
     cb(carCount)

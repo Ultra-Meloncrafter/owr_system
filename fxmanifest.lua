@@ -9,7 +9,7 @@ client_scripts {
 	"@es_extended/locale.lua",
 	'@PolyZone/client.lua',
 	'@PolyZone/BoxZone.lua',
-    "client/**/*.lua"
+    "client/client.lua"
 }
 
 server_scripts {
