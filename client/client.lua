@@ -440,45 +440,40 @@ end)
 
 --LapTimer anfang
 CreateThread(function()
-    local startTime = GetGameTimer()  -- Start the timer at the beginning
-    local timerInSeconds = 0
-    local timerInMinutes = 0
+    local lapTimer = "0.00"
     local playerPed, playerVeh, model
-    local resetControl = 38
+    local elapsedTime = 0
+    local lapJustFinished = false
+
     while true do
-        Wait(0)
+        Wait(1000)
         playerPed = PlayerPedId()
         if IsPedInAnyVehicle(playerPed, false) then
             playerVeh = GetVehiclePedIsIn(playerPed, false)
             model = GetEntityModel(playerVeh)
             for i = 1, #OWRVeh do
                 if GetHashKey(OWRVeh[i]) == model and not exitVehicle then
-                    if exports["ultra_owr_systems"]:ifFinishLaneIsCrossed() or exports["ultra_owr_systems"]:ifPitLeft() and not lapJustFinished then
+                    if exports["ultra_owr_systems"]:ifFinishLaneIsCrossed() or (exports["ultra_owr_systems"]:ifPitLeft() and not lapJustFinished) then
                         lapJustFinished = true
-                        plateText = GetVehicleNumberPlateText(playerVeh)
+                        local plateText = GetVehicleNumberPlateText(playerVeh)
                         TriggerServerEvent('owr_systems:addTime', plateText, lapTimer)
                         ESX.ShowNotification("Letzte Runden Zeit: " .. tostring(lapTimer))
-                        startTime = GetGameTimer()
-                        timerInSeconds = 0
-                        timerInMinutes = 0
                         elapsedTime = 0
                         Wait(1000)
                         lapJustFinished = false
                     end
-                    local elapsedTime = GetGameTimer() - startTime
-                    timerInSeconds = math.floor(elapsedTime / 1000 % 60)
-                    timerInMinutes = math.floor(elapsedTime / 1000 / 60)
+                    elapsedTime = elapsedTime + 1
+                    local timerInSeconds = elapsedTime % 60
+                    local timerInMinutes = math.floor(elapsedTime / 60)
                     lapTimer = string.format("%d.%02d", timerInMinutes, timerInSeconds)
                 end
             end
         else
-            startTime = GetGameTimer()
-            timerInSeconds = 0
-            timerInMinutes = 0
             elapsedTime = 0
         end
     end
 end)
+
 
 CreateThread(function()
 	while true do
