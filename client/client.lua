@@ -285,23 +285,12 @@ AddEventHandler('esx:enteredVehicle', function(vehicle, plate, seat, displayName
 
 --Pit Marker entfernen
 function RemovePitMarkers()
-    RemoveBlip(blip1)
-    RemoveBlip(blip2)
-    RemoveBlip(blip3)
-    RemoveBlip(blip4)
-    RemoveBlip(blip5)
-    RemoveBlip(blip6)
-    RemoveBlip(blip7)
-    RemoveBlip(blip8)   
-    blip1Visible = false
-    blip2Visible = false
-    blip3Visible = false
-    blip4Visible = false
-    blip5Visible = false
-    blip6Visible = false
-    blip7Visible = false
-    blip8Visible = false       
+    for i = 1, 8 do
+        RemoveBlip(_G["blip" .. i])
+        _G["blip" .. i .. "Visible"] = false
+    end
 end
+
 
 --Pit Marker erstellen
 CreateThread(function()
