@@ -527,24 +527,29 @@ end)
 
 -- Fahrzeug Spawner
 CreateThread(function()
-	while true do
-		Wait(0)
-		local playerPed = PlayerPedId()
-		local coords = GetEntityCoords(playerPed)
+    while true do
+        Wait(0)
+        local playerPed = PlayerPedId()
+        local coords = GetEntityCoords(playerPed)
+        local Coords = vector3(3647.4951, -6547.1377, 2189.7495)
+
         if ESX.PlayerData.job and ESX.PlayerData.job.name == 'public_transport' then
-            DrawMarker(1, 3647.4951, -6547.1377, 2189.7495, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0, 255, 0, 100, false, true, 2, true, nil, nil, false)
-        if GetDistanceBetweenCoords(coords, 3647.4951, -6547.1377, 2189.7495, true) < 1.5 then
-            ESX.ShowHelpNotification('Drück ~INPUT_CONTEXT~ um ein Wagen auszuparken!')
-            inSpawnerPlace = true
-        else
-            inSpawnerPlace = false
+            DrawMarker(1, Coords.x, Coords.y, Coords.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0, 255, 0, 100, false, true, 2, true, nil, nil, false)
+
+            if #(coords - Coords) < 1.5 then
+                ESX.ShowHelpNotification('Drück ~INPUT_CONTEXT~ um ein Wagen auszuparken!')
+                inSpawnerPlace = true
+            else
+                inSpawnerPlace = false
+            end
+
+            if IsControlJustReleased(0, 51) and inSpawnerPlace then
+                OpenVehicleSpawnerMenu()
+            end
         end
-        if IsControlJustReleased(0, 51) and inSpawnerPlace then
-            OpenVehicleSpawnerMenu()
-        end
-	end
-end
+    end
 end)
+
 
 -- Fahrzeug Spawner Menü
 function OpenVehicleSpawnerMenu()
