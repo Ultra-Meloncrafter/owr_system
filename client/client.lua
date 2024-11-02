@@ -1,9 +1,11 @@
-ESX = nil
-Citizen.CreateThread(function()
-    while ESX == nil do
-        TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
-    end
+local success, result = pcall(function()
+    return exports["es_extended"]:getSharedObject()
 end)
+if success then 
+    ESX = result
+else
+  TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
+end
 
 -- Fahrzeug Liste
 local OWRVeh = {"openwheel1","openwheel2","formula","formula2"}
@@ -214,120 +216,74 @@ function OpenPitStopMenu()
 end
 -- Pit Stop Menu Ende
 
--- DRS Funktion
-Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(0)
-        local playerPed = PlayerPedId()
-        if IsPedInAnyVehicle(playerPed, false) then
-			local playerVeh = GetVehiclePedIsIn(playerPed, false)
-            local model = GetEntityModel(playerVeh)
-            for i = 1, #OWRVeh do
-                if GetHashKey(OWRVeh[i]) == model then
-                    if exports["ultra_owr_systems"]:ifDRSEntered() then  
-                        ShowNotification("DRS ~g~aktiviert")
-                        DRSEntered = true
-                        local speedkm   = 300
-                        local speed   = speedkm/3.6
-                        SetVehicleMaxSpeed(playerVeh, speed)
-                        SetVehicleEnginePowerMultiplier(playerVeh,50.0)
-                    elseif exports["ultra_owr_systems"]:ifDRSLeft() and DRSEntered then
-                        DRSEntered = false
-                        ShowNotification("DRS ~r~deaktiviert")
-                        local speedkm   = 250
-                        local speed   = speedkm/3.6
-                        SlowDownToLimitSpeed(playerVeh, speed)
-                        SetVehicleMaxSpeed(playerVeh, speed)
-                        SetVehicleEnginePowerMultiplier(playerVeh,1.0)
-                    end
-                end
-            end
-        end
-    end
-end)
+local inVeh = false
 
--- Boxenbegrenzer
-Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(0)
-        local playerPed = PlayerPedId()
-        if IsPedInAnyVehicle(playerPed, false) then
-			local playerVeh = GetVehiclePedIsIn(playerPed, false)
-            local model = GetEntityModel(playerVeh)
-            for i = 1, #OWRVeh do
-                if GetHashKey(OWRVeh[i]) == model then
-                    if exports["ultra_owr_systems"]:ifPitEntered() and not PitEntered and pitRequested then  
-                        ShowNotification("Boxengassen Begrenzer ~g~aktiviert")
-                        PitEntered = true
-                        local speedkm   = 80
-                        local speed   = speedkm/3.6
-                        SlowDownToLimitSpeed(playerVeh, speed)
-                        SetVehicleMaxSpeed(playerVeh, speed)
-                    elseif exports["ultra_owr_systems"]:ifPitLeft() and PitEntered then
-                        ShowNotification("Boxengassen Begrenzer ~r~deaktiviert")
-                        inPitPlace = false
-                        PitEntered = false
-                        pitRequested = false
-                        local speedkm   = 250
-                        local speed   = speedkm/3.6
-                        SetVehicleMaxSpeed(playerVeh, speed)
-                        RemovePitMarkers()
-                    end
-                end
-            end
-        end
-    end
-end)
-
---Safety Car Begrenzer
-Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(0)
-        local playerPed = PlayerPedId()
-        if IsPedInAnyVehicle(playerPed, false) then
-			local playerVeh = GetVehiclePedIsIn(playerPed, false)
-            local model = GetEntityModel(playerVeh)
-            for i = 1, #OWRVeh do
-                if GetHashKey(OWRVeh[i]) == model then
-                    if IsControlJustReleased(0, 29) and not safetyMode then
-                        ShowNotification("Safetycar Begrenzer ~g~aktiviert")
-                        safetyMode = true
-                        local speedkm   = 150
-                        local speed   = speedkm /3.6
-                        SetVehicleMaxSpeed(playerVeh, speed)
-                        SlowDownToLimitSpeed(playerVeh, speed)
-                    elseif IsControlJustReleased(0, 29) and safetyMode then
-                        ShowNotification("Safetycar Begrenzer ~r~deaktiviert")
-                        local speedkm   = 250
-                        local speed   = speedkm/3.6
-                        SetVehicleMaxSpeed(playerVeh, speed)
-                        safetyMode = false
-                    end
-                end
-            end
-        end
-    end
-end)
-
--- Pit Request
-Citizen.CreateThread(function ()
-    while true do
-        Citizen.Wait(0)
-        local playerPed = PlayerPedId()
-        if IsPedInAnyVehicle(playerPed, false) then
-			local playerVeh = GetVehiclePedIsIn(playerPed, false)
-            local model = GetEntityModel(playerVeh)
-            for i = 1, #OWRVeh do
-                if GetHashKey(OWRVeh[i]) == model and IsControlJustReleased(0, 44) and not pitRequested then
+AddEventHandler('esx:enteredVehicle', function(vehicle, plate, seat, displayName, netId)
+    local playerPed = PlayerPedId() 
+    local playerVeh = GetVehiclePedIsIn(playerPed, false)
+    local model = GetEntityModel(playerVeh)
+    if GetHashKey(OWRVeh[i]) == model then inVeh = true end
+        Citizen.CreateThread(function()
+            while inVeh do
+                Citizen.Wait(0)
+                if not PitEntered and not DRSEntered and not safetyMode then
+                    exitVehicle = false
+                    local speedkm   = 250
+                    local speed   = speedkm/3.6
+                    SetVehicleMaxSpeed(playerVeh, speed)
+                elseif exports["ultra_owr_systems"]:ifDRSEntered() then
+                    ShowNotification("DRS ~g~aktiviert")
+                    DRSEntered = true
+                    local speedkm = 300
+                    local speed = speedkm / 3.6
+                    SetVehicleMaxSpeed(playerVeh, speed)
+                    SetVehicleEnginePowerMultiplier(playerVeh, 50.0)
+                elseif exports["ultra_owr_systems"]:ifDRSLeft() and DRSEntered then
+                    DRSEntered = false
+                    ShowNotification("DRS ~r~deaktiviert")
+                    local speedkm = 250
+                    local speed = speedkm / 3.6
+                    SlowDownToLimitSpeed(playerVeh, speed)
+                    SetVehicleMaxSpeed(playerVeh, speed)
+                    SetVehicleEnginePowerMultiplier(playerVeh, 1.0)
+                elseif exports["ultra_owr_systems"]:ifPitEntered() and not PitEntered and pitRequested then  
+                    ShowNotification("Boxengassen Begrenzer ~g~aktiviert")
+                    PitEntered = true
+                    local speedkm   = 80
+                    local speed   = speedkm/3.6
+                    SlowDownToLimitSpeed(playerVeh, speed)
+                    SetVehicleMaxSpeed(playerVeh, speed)
+                elseif exports["ultra_owr_systems"]:ifPitLeft() and PitEntered then
+                    ShowNotification("Boxengassen Begrenzer ~r~deaktiviert")
+                    inPitPlace = false
+                    PitEntered = false
+                    pitRequested = false
+                    local speedkm   = 250
+                    local speed   = speedkm/3.6
+                    SetVehicleMaxSpeed(playerVeh, speed)
+                    RemovePitMarkers()
+                elseif IsControlJustReleased(0, 29) and not safetyMode then
+                    ShowNotification("Safetycar Begrenzer ~g~aktiviert")
+                    safetyMode = true
+                    local speedkm   = 150
+                    local speed   = speedkm /3.6
+                    SetVehicleMaxSpeed(playerVeh, speed)
+                    SlowDownToLimitSpeed(playerVeh, speed)
+                elseif IsControlJustReleased(0, 29) and safetyMode then
+                    ShowNotification("Safetycar Begrenzer ~r~deaktiviert")
+                    local speedkm   = 250
+                    local speed   = speedkm/3.6
+                    SetVehicleMaxSpeed(playerVeh, speed)
+                    safetyMode = false
+                elseif IsControlJustReleased(0, 44) and not pitRequested then
                     pitRequested = true
                     ESX.ShowNotification("Du hast einen Boxenstopp angefragt")
-                elseif GetHashKey(OWRVeh[i]) == model and IsControlJustReleased(0, 44) and pitRequested then
+                elseif IsControlJustReleased(0, 44) and pitRequested then
                     ESX.ShowNotification("⚠ Du hast noch einen offenen Boxenstopp")
                 end
             end
-        end
-    end
-end)
+        end)
+    end)
 
 --Pit Marker entfernen
 function RemovePitMarkers()
@@ -549,26 +505,6 @@ Citizen.CreateThread(function()
     end
 end)
 --Lap Timer Ende
-
---Speed Limiter
-Citizen.CreateThread(function()
-    while true do
-        Citizen.Wait(0)
-        local playerPed = PlayerPedId()
-        if IsPedInAnyVehicle(playerPed, false) then
-			local playerVeh = GetVehiclePedIsIn(playerPed, false)
-            local model = GetEntityModel(playerVeh)
-            for i = 1, #OWRVeh do
-                if GetHashKey(OWRVeh[i]) == model and not PitEntered and not DRSEntered and not safetyMode then
-                    exitVehicle = false
-                    local speedkm   = 250
-                    local speed   = speedkm/3.6
-                    SetVehicleMaxSpeed(playerVeh, speed)
-                end
-            end
-        end
-    end
-end)
 
 -- Fahrzeug Spawner
 Citizen.CreateThread(function()
