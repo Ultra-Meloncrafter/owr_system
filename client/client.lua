@@ -144,69 +144,74 @@ exports("IfPitStopIsRequested", checkIfPitStopIsRequested)
 
 -- Pit Stop Menu Anfang
 function OpenPitStopMenu()
-	local elements = {
-		{label = "Tanken", value = 'fuel_vehicle'},
-		{label = "Reifen wechseln", value = 'change_tires'},
-		{label = "Alles", value = 'everything'},
-	}
+    local elements = {
+        {label = "Tanken", value = 'fuel_vehicle'},
+        {label = "Reifen wechseln", value = 'change_tires'},
+        {label = "Alles", value = 'everything'},
+    }
 
-	ESX.UI.Menu.CloseAll()
+    ESX.UI.Menu.CloseAll()
 
-	ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'pitstop_menu', {
-		css =  '',
-		title    = "Boxenstopp",
-		align    = 'top-left',
-		elements = elements
-	}, function(data, menu)
-		if data.current.value == 'fuel_vehicle' then
-            local time = math.random(1600, 3000)
-            local playerPed = PlayerPedId()
-			local playerVeh = GetVehiclePedIsIn(playerPed, false)
-            local timeInSeconds = time/1000
-            local actuallTime = math.floor(timeInSeconds * 100 + 0.5) / 100 
-            FreezeEntityPosition(playerVeh, true)
-            ESX.ShowNotification("Noch ~g~" .. tostring(actuallTime) .. " ~w~Sekunden bis dein Wagen vollgetankt ist")
-			exports["esx-sna-fuel-main"]:SetFuel(playerVeh, 100)
-            exports['progbars']:StartProg(time, 'Fahrzeug tanken')
-            Wait(time)
-            FreezeEntityPosition(playerVeh, false)
-            ESX.UI.Menu.CloseAll()
-		elseif data.current.value == 'change_tires' then
-            local time = math.random(1800, 3500)
-            local playerPed = PlayerPedId()
-			local playerVeh = GetVehiclePedIsIn(playerPed, false)
-            local timeInSeconds = time/1000
-            local actuallTime = math.floor(timeInSeconds * 100 + 0.5) / 100 
-            FreezeEntityPosition(playerVeh, true)
-            ESX.ShowNotification("Noch ~g~" .. tostring(actuallTime) .. " ~w~Sekunden bis deine Reifen gewechselt sind")
-            SetVehicleFixed(playerVeh)
-			SetVehicleDirtLevel(playerVeh, 0.0)
-            exports['progbars']:StartProg(time, 'Reifen wechseln')
-            Wait(time)
-            ESX.ShowNotification("Test")
-            FreezeEntityPosition(playerVeh, false)
-            ESX.UI.Menu.CloseAll()
-		elseif data.current.value == 'everything' then
-            local time = math.random(1980, 4980)
-            local playerPed = PlayerPedId()
-			local playerVeh = GetVehiclePedIsIn(playerPed, false)
-            local timeInSeconds = time/1000
-            local actuallTime = math.floor(timeInSeconds * 100 + 0.5) / 100 
-            FreezeEntityPosition(playerVeh, true)
-            ESX.ShowNotification("Noch ~g~" .. tostring(actuallTime) .. " ~w~Sekunden bis deine Reifen gewechselt sind und dein Fahrzeug betankt ist")
-            SetVehicleFixed(playerVeh)
-			SetVehicleDirtLevel(playerVeh, 0.0)
-            exports["esx-sna-fuel-main"]:SetFuel(playerVeh, 100)
-            exports['progbars']:StartProg(5000, 'Fahrzeug tanken und Reifen wechseln')
-            Wait(time)
-            FreezeEntityPosition(playerVeh, false)
-            ESX.UI.Menu.CloseAll()
-		end
+    ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'pitstop_menu', {
+        css = '',
+        title = "Boxenstopp",
+        align = 'top-left',
+        elements = elements
+    }, function(data, menu)
+        local playerPed = PlayerPedId()
+        local playerVeh = GetVehiclePedIsIn(playerPed, false)
 
-	end, function(data, menu)
-		menu.close()
-	end)
+        local actions = {
+            fuel_vehicle = function()
+                local time = math.random(1600, 3000)
+                local actuallTime = math.floor((time / 1000) * 100 + 0.5) / 100
+                FreezeEntityPosition(playerVeh, true)
+                ESX.ShowNotification("Noch ~g~" .. tostring(actuallTime) .. " ~w~Sekunden bis dein Wagen vollgetankt ist")
+                exports["esx-sna-fuel-main"]:SetFuel(playerVeh, 100)
+                exports['progbars']:StartProg(time, 'Fahrzeug tanken')
+                Wait(time)
+                FreezeEntityPosition(playerVeh, false)
+                ESX.UI.Menu.CloseAll()
+            end,
+
+            change_tires = function()
+                local time = math.random(1800, 3500)
+                local actuallTime = math.floor((time / 1000) * 100 + 0.5) / 100
+                FreezeEntityPosition(playerVeh, true)
+                ESX.ShowNotification("Noch ~g~" .. tostring(actuallTime) .. " ~w~Sekunden bis deine Reifen gewechselt sind")
+                SetVehicleFixed(playerVeh)
+                SetVehicleDirtLevel(playerVeh, 0.0)
+                exports['progbars']:StartProg(time, 'Reifen wechseln')
+                Wait(time)
+                FreezeEntityPosition(playerVeh, false)
+                ESX.UI.Menu.CloseAll()
+            end,
+
+            everything = function()
+                local time = math.random(1980, 4980)
+                local actuallTime = math.floor((time / 1000) * 100 + 0.5) / 100
+                FreezeEntityPosition(playerVeh, true)
+                ESX.ShowNotification("Noch ~g~" .. tostring(actuallTime) .. " ~w~Sekunden bis deine Reifen gewechselt sind und dein Fahrzeug betankt ist")
+                SetVehicleFixed(playerVeh)
+                SetVehicleDirtLevel(playerVeh, 0.0)
+                exports["esx-sna-fuel-main"]:SetFuel(playerVeh, 100)
+                exports['progbars']:StartProg(5000, 'Fahrzeug tanken und Reifen wechseln')
+                Wait(time)
+                FreezeEntityPosition(playerVeh, false)
+                ESX.UI.Menu.CloseAll()
+            end
+        }
+
+        local action = actions[data.current.value]
+        if action then
+            action()
+        end
+
+    end, function(data, menu)
+        menu.close()
+    end)
 end
+
 -- Pit Stop Menu Ende
 
 local inVeh = false
