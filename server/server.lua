@@ -58,8 +58,6 @@ ESX.RegisterServerCallback('owr_systems:carCount', function(src, cb)
 end)
 
 
-
-
 RegisterServerEvent('owr_systems:removePlate')
 AddEventHandler('owr_systems:removePlate', function(plateText)
     local plates = {
