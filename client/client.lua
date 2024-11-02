@@ -168,7 +168,7 @@ function OpenPitStopMenu()
             ESX.ShowNotification("Noch ~g~" .. tostring(actuallTime) .. " ~w~Sekunden bis dein Wagen vollgetankt ist")
 			exports["esx-sna-fuel-main"]:SetFuel(playerVeh, 100)
             exports['progbars']:StartProg(time, 'Fahrzeug tanken')
-            Citizen.Wait(time)
+            Wait(time)
             FreezeEntityPosition(playerVeh, false)
             ESX.UI.Menu.CloseAll()
 		elseif data.current.value == 'change_tires' then
@@ -182,7 +182,7 @@ function OpenPitStopMenu()
             SetVehicleFixed(playerVeh)
 			SetVehicleDirtLevel(playerVeh, 0.0)
             exports['progbars']:StartProg(time, 'Reifen wechseln')
-            Citizen.Wait(time)
+            Wait(time)
             ESX.ShowNotification("Test")
             FreezeEntityPosition(playerVeh, false)
             ESX.UI.Menu.CloseAll()
@@ -198,7 +198,7 @@ function OpenPitStopMenu()
 			SetVehicleDirtLevel(playerVeh, 0.0)
             exports["esx-sna-fuel-main"]:SetFuel(playerVeh, 100)
             exports['progbars']:StartProg(5000, 'Fahrzeug tanken und Reifen wechseln')
-            Citizen.Wait(time)
+            Wait(time)
             FreezeEntityPosition(playerVeh, false)
             ESX.UI.Menu.CloseAll()
 		end
@@ -216,9 +216,9 @@ AddEventHandler('esx:enteredVehicle', function(vehicle, plate, seat, displayName
     local playerVeh = GetVehiclePedIsIn(playerPed, false)
     local model = GetEntityModel(playerVeh)
     if GetHashKey(OWRVeh[i]) == model then inVeh = true end
-        Citizen.CreateThread(function()
+        CreateThread(function()
             while inVeh do
-                Citizen.Wait(0)
+                Wait(0)
                 if not PitEntered and not DRSEntered and not safetyMode then
                     exitVehicle = false
                     local speedkm   = 250
@@ -299,9 +299,9 @@ function RemovePitMarkers()
 end
 
 --Pit Marker erstellen
-Citizen.CreateThread(function()
+CreateThread(function()
 	while true do
-		Citizen.Wait(0)
+		Wait(0)
 		local playerPed = PlayerPedId()
 		local coords = GetEntityCoords(playerPed)
         if IsPedInAnyVehicle(playerPed, false) then
@@ -431,7 +431,7 @@ CreateThread(function()
                         timerInSeconds = 0
                         timerInMinutes = 0
                         elapsedTime = 0
-                        Citizen.Wait(1000)
+                        Wait(1000)
                         lapJustFinished = false
                     end
                     local elapsedTime = GetGameTimer() - startTime
@@ -449,7 +449,7 @@ CreateThread(function()
     end
 end)
 
-Citizen.CreateThread(function()
+CreateThread(function()
 	while true do
 		Wait(0)
         local playerPed = PlayerPedId()
@@ -475,9 +475,9 @@ Citizen.CreateThread(function()
     end
 end)
 
-Citizen.CreateThread(function()
+CreateThread(function()
     while true do
-        Citizen.Wait(0)
+        Wait(0)
         local playerPed = PlayerPedId()
         if IsPedInAnyVehicle(playerPed, false) then
 			local playerVeh = GetVehiclePedIsIn(playerPed, false)
@@ -500,9 +500,9 @@ end)
 --Lap Timer Ende
 
 -- Fahrzeug Spawner
-Citizen.CreateThread(function()
+CreateThread(function()
 	while true do
-		Citizen.Wait(0)
+		Wait(0)
 		local playerPed = PlayerPedId()
 		local coords = GetEntityCoords(playerPed)
         if ESX.PlayerData.job and ESX.PlayerData.job.name == 'public_transport' then
@@ -568,9 +568,9 @@ function WaitModelLoad(name)
 	end
 end
 
-Citizen.CreateThread(function()
+CreateThread(function()
 	while true do
-		Citizen.Wait(0)
+		Wait(0)
 		local playerPed = PlayerPedId()
 		local coords = GetEntityCoords(playerPed)
         local model = GetEntityModel(playerVeh)
